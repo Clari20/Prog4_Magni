@@ -32,3 +32,10 @@ def delete_participante(participante_id: str, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Participante no encontrado")
     return {"message": "Eliminado exitosamente"}
+
+@app.put("/participantes/{participante_id}", response_model=schemas.Participante)
+def update_participante(participante_id: str, participante: schemas.ParticipanteCreate, db: Session = Depends(get_db)):
+    db_participante = crud.update_participante(db, participante_id, participante)
+    if not db_participante:
+        raise HTTPException(status_code=404, detail="Participante no encontrado")
+    return db_participante
