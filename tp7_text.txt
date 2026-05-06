@@ -1,0 +1,77 @@
+TP Nº6  
+“Rutas públicas, privadas y control de acceso por rol”  
+ 
+Objetivo  
+El alumno deberá:  
+ Implementar login  
+ Manejar sesión (simulada)  
+ Crear rutas privadas  
+ Restringir acceso según rol  
+ Adaptar UI según permisos  
+ Implementar JWT  
+Tabla Usuarios  
+Cree una tabla  usuarios_db  con los campos  
+id PK autonumerica  
+username : cadena  
+password : cadena 
+rol: cadena  
+ 
+Roles:  
+type  Rol = "ADMIN"  | "CONSULTA" ; 
+ 
+Estructura de archivos:  
+Agregar los siguientes archivos a l a estructura  de la app : 
+ 
+ 
+ 
+ 
+AuthContext.ts x 
+Este context  de la aplicación  debe rá implementar las funcionalidades de login y logout de 
+la app  
+ 
+PrivateRoute.tsx  
+Debera validar si el u suario tiene acceso a la ruta deseada  
+ 
+ 
+LoginPage.tsx  
+Página  que contendrá  el formulario de Login a la app  
+ 
+ 
+ 
+ 
+Cerrar Sesi ón  
+Realizado un in greso exitoso a gregue  y muestre  una opción  al menú  que permita Cerrar 
+Sesión 
+ 
+ 
+ 
+main.tsx 
+El nuevo  provider de autorización  debe ser padre del provider de participantes .  
+ 
+ 
+ 
+Rutas Protegidas  
+Agre gue una página  publica  que no tendrá  validación  de ningún  tipo, el resto de las rutas a 
+excepción  del Login serán  rutas pri vadas  
+ 
+ 
+ 
+ 
+Mostrar botón  Nuevo y Editar  solo si es ADMIN  
+{user ?.rol === "ADMIN"  && ( 
+<Link  to="/nuevo" >Nuevo participante </Link>  
+)} 
+Mostrar opción  del menú  con acceso al formulario solo si es ADMIN  
+ 
+Token JWT  
+Implemente Tokens JWT  para realizar  la validación  del usuario  en la app, implemente la 
+generación  del Token en el backend.   
+Persistir Token Login  
+Una vez generado el T oken persista el mismo e n el localStorage , o en el sessionStorage o 
+mediante cookies y valide  cada endpoint  cliente /servidor  mediante el Token.  
+Resultado final  
+Usuario  Rol Permisos  
+ADMIN  Leer, Crear, Editar, Eliminar  
+CONSULTA  Solo ver  Participantes, no p uede acceder al Formulario  
+ 
+  
