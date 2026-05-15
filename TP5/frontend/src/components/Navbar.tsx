@@ -1,9 +1,18 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
+    navigate('/login');
+  };
 
   return (
     <nav className="navbar">
@@ -17,16 +26,27 @@ export default function Navbar() {
           <div className="bar3"></div>
         </div>
         <ul className={`nav-menu ${isOpen ? 'active' : ''}`}>
-          <li className="nav-item">
-            <Link to="/" className="nav-links" onClick={() => setIsOpen(false)}>
-              Inicio
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/nuevo" className="nav-links" onClick={() => setIsOpen(false)}>
-              Nuevo Participante
-            </Link>
-          </li>
+          {isAuthenticated && (
+            <li className="nav-item">
+              <Link to="/" className="nav-links" onClick={() => setIsOpen(false)}>
+                Inicio
+              </Link>
+            </li>
+          )}
+          {user?.rol === 'ADMIN' && (
+            <li className="nav-item">
+              <Link to="/nuevo" className="nav-links" onClick={() => setIsOpen(false)}>
+                Nuevo Participante
+              </Link>
+            </li>
+          )}
+          {isAuthenticated && (
+            <li className="nav-item">
+              <span className="nav-links" style={{ cursor: 'pointer' }} onClick={handleLogout}>
+                Cerrar Sesión
+              </span>
+            </li>
+          )}
         </ul>
       </div>
     </nav>

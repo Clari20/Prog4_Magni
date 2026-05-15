@@ -51,3 +51,17 @@ def update_participante(db: Session, participante_id: str, participante: schemas
         db_participante.tecnologias = json.loads(db_participante.tecnologias)
         return db_participante
     return None
+
+def get_user_by_username(db: Session, username: str):
+    return db.query(models.Usuario).filter(models.Usuario.username == username).first()
+
+def create_user(db: Session, user: schemas.UsuarioCreate):
+    db_user = models.Usuario(
+        username=user.username,
+        password=user.password, # In a real app, hash this before saving! (handled in main.py)
+        rol=user.rol
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user

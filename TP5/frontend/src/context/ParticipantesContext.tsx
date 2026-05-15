@@ -1,6 +1,7 @@
 import React, { createContext, useReducer, useEffect, ReactNode, useState, useContext } from 'react';
 import { Participante } from '../models/Participante';
 import { participantesReducer } from './ParticipantesReducer';
+import { useAuth } from './AuthContext';
 
 interface ContextType {
   participantes: Participante[];
@@ -20,10 +21,23 @@ const API_URL = 'http://localhost:8000/participantes';
 export const ParticipantesProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [participantes, dispatch] = useReducer(participantesReducer, []);
   const [participanteEditando, setParticipanteEditando] = useState<Participante | null>(null);
+  const { token } = useAuth();
+
+  const getHeaders = () => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
+  };
+
+  const getHeadersDelete = () => {
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
+  };
 
   const fetchParticipantes = async () => {
     try {
-      const res = await fetch(API_URL);
+      const res = await fetch(API_URL, { headers: getHeadersDelete() });
       if (!res.ok) throw new Error("Error en la respuesta");
       const data = await res.json();
       const loaded = data.map((obj: any) => {
@@ -48,7 +62,7 @@ export const ParticipantesProvider: React.FC<{ children: ReactNode }> = ({ child
     try {
       const res = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify(p)
       });
       if (res.ok) {
@@ -64,7 +78,8 @@ export const ParticipantesProvider: React.FC<{ children: ReactNode }> = ({ child
   const eliminar = async (id: string) => {
     try {
       const res = await fetch(`${API_URL}/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getHeadersDelete()
       });
       if (res.ok) {
         dispatch({ type: "ELIMINAR", payload: id });
@@ -78,7 +93,7 @@ export const ParticipantesProvider: React.FC<{ children: ReactNode }> = ({ child
     try {
       const res = await fetch(`${API_URL}/${p.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify(p)
       });
       if (res.ok) {

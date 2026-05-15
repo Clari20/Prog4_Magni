@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useParticipantes } from '../context/ParticipantesContext';
+import { useAuth } from '../context/AuthContext';
 import { Participante } from '../models/Participante';
 
 const NIVEL_COLOR: Record<string, string> = {
@@ -24,6 +25,7 @@ export default function ParticipanteCard({ participante }: { participante: Parti
   const esPerfil = nivel === 'Avanzado';
 
   const { eliminar } = useParticipantes();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -40,14 +42,16 @@ export default function ParticipanteCard({ participante }: { participante: Parti
       {esPerfil && (
         <div className="card-perfil" style={{ color: nivelColor }}>Perfil Avanzado</div>
       )}
-      <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
-        <button className="btn-editar" onClick={() => navigate(`/editar/${id}`)} style={{ flex: 1, backgroundColor: '#f1c40f', color: '#fff', padding: '8px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Editar
-        </button>
-        <button className="btn-eliminar" onClick={() => eliminar(id)} style={{ flex: 1 }}>
-          Eliminar
-        </button>
-      </div>
+      {user?.rol === 'ADMIN' && (
+        <div style={{ display: 'flex', gap: '8px', marginTop: '15px' }}>
+          <button className="btn-editar" onClick={() => navigate(`/editar/${id}`)} style={{ flex: 1, backgroundColor: '#f1c40f', color: '#fff', padding: '8px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            Editar
+          </button>
+          <button className="btn-eliminar" onClick={() => eliminar(id)} style={{ flex: 1 }}>
+            Eliminar
+          </button>
+        </div>
+      )}
     </div>
   );
 }

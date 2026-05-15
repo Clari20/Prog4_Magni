@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from "react-router-dom"; 
 import { useParticipantes } from "../context/ParticipantesContext"; 
+import { useAuth } from "../context/AuthContext";
 import ParticipanteCard from "../components/ParticipanteCard"; 
 import Filtros, { FiltrosState } from '../components/Filtros';
 
 export default function Home() { 
   const { participantes, resetear } = useParticipantes(); 
+  const { user } = useAuth(); 
 
   const [filtros, setFiltros] = useState<FiltrosState>({
     busqueda: '',
@@ -26,9 +28,11 @@ export default function Home() {
         <div className="contador-total">
           Participantes registrados: {participantes.length}
         </div>
-        <Link to="/nuevo" className="btn-registrar" style={{ textDecoration: 'none' }}>
-          Nuevo participante
-        </Link> 
+        {user?.rol === 'ADMIN' && (
+          <Link to="/nuevo" className="btn-registrar" style={{ textDecoration: 'none' }}>
+            Nuevo participante
+          </Link> 
+        )}
       </div>
 
       <div className="filtros-wrapper">
