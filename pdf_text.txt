@@ -1,0 +1,35 @@
+TP Nº 8  
+Agregue  e implemente  en la aplic ación  de Participantes los siguientes hooks  
+useRef, useId y Custom Hooks  
+Objetivos  
+El alumno deberá:  
+ Implementar useRef   
+ Implementar useId   
+ Crear y utilizar Custom Hooks  
+ Mejorar la experiencia de usuario  
+ Reutilizar lógica  
+ Mantener la arquitectura actual de la aplicación  
+PARTE 1 — useRef  
+Implementar:  
+✔ Foco automático  
+Al ingresar a la pantalla:  
+ el input “Nombre” deberá recibir foco automáticamente.  
+ En el listado de participantes a utomatizar el traslado  del foco a la sección  de filtros 
+de búsqueda  aplicando una com binaci ón de tec las, ejemplo al presionar Ctrl + B  
+PARTE 2 — useId  (genera identif icadores únicos automáticamente)  
+Implementar IDs accesibles para  los componentes de formulario : 
+ inputs  
+ labels  
+ checkbox  
+ radio buttons  
+Ejemplo:  
+const  nombreId  = useId (); 
+<label  htmlFor ={nombreId }>Nombre </label > 
+<input  id={nombreId } /> 
+ 
+  
+PARTE 3 — Custom Hook  
+Es una función reutilizable que usa hooks internamente.  
+Crear 2 funciones aplicando   hook s personalizados  que doten al sistema de 
+funcionalidades útiles . 
+ 
