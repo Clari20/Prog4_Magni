@@ -71,3 +71,15 @@ Con el backend corriendo, abrí tu navegador e ingresá a esta URL para disparar
 - **Custom Hooks:** 
   - `useKeyboardShortcut`: Permite enfocar la barra de búsqueda rápidamente presionando `Ctrl + B`.
   - `useDebounce`: Retrasa la evaluación de los filtros de búsqueda (300ms) para mejorar drásticamente el rendimiento y la experiencia de usuario.
+
+---
+
+## 🛒 4. Integración con MercadoPago (Compras por Usuario)
+
+Se implementó un flujo completo para procesar pagos con MercadoPago, asociando estrictamente cada compra al usuario correspondiente:
+
+- **Protección de rutas:** El endpoint de creación de preferencias (`/api/pagos/create-preference`) exige un token JWT válido.
+- **Trazabilidad de Usuarios:** Se inyecta el ID del usuario en MercadoPago utilizando el campo `external_reference`.
+- **Webhook Inteligente:** Al aprobarse el pago, MercadoPago notifica al webhook (`/api/pagos/webhook`), el backend extrae el `external_reference` y asienta la compra en la base de datos con su respectivo `usuario_id`.
+- **Proxy Ngrok para Auto-Return:** Como MercadoPago prohíbe usar `localhost` para la redirección automática (`auto_return`), se armó una arquitectura proxy. El backend expone endpoints intermediarios (ej. `/api/pagos/success`) accesibles vía Ngrok (HTTPS), los cuales devuelven un **302 Redirect** transparente hacia el frontend local.
+- **Renderizado Dinámico:** El Home consume la ruta autenticada `/api/compras/me` para renderizar únicamente los cursos que pertenecen al usuario logueado.

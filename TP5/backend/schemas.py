@@ -40,3 +40,21 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     user: Usuario
+
+class PagoRequest(BaseModel):
+    titulo: str
+    precio: float
+
+class PagoResponse(BaseModel):
+    init_point: str
+
+class CompraResponse(BaseModel):
+    id: int
+    payment_id: str
+    curso_titulo: str
+    curso_precio: float
+    status: str
+    fecha: str
+
+    class Config:
+        from_attributes = True

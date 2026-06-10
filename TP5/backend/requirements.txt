@@ -4,3 +4,6 @@ sqlalchemy
 pydantic
 PyJWT
 passlib[bcrypt]
+mercadopago
+python-dotenv
+requests

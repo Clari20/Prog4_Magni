@@ -1,0 +1,25 @@
+# Entornos virtuales y dependencias
+TP5/backend/venv/
+TP5/backend/env/
+TP5/frontend/node_modules/
+
+# Variables de entorno (¡NUNCA SUBIRLAS!)
+TP5/backend/.env
+TP5/frontend/.env
+
+# Base de datos local
+TP5/backend/sql_app.db
+
+# Archivos compilados y de caché
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+TP5/frontend/dist/
+TP5/frontend/.vite/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+ehthumbs.db

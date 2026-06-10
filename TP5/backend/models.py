@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer, Boolean
+from sqlalchemy import Column, String, Integer, Boolean, Float, DateTime
+from datetime import datetime
 from database import Base
 
 class Participante(Base):
@@ -21,3 +22,14 @@ class Usuario(Base):
     username = Column(String, unique=True, index=True)
     password = Column(String)
     rol = Column(String)
+
+class Compra(Base):
+    __tablename__ = "compras"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    payment_id = Column(String, unique=True, index=True)
+    curso_titulo = Column(String)
+    curso_precio = Column(Float)
+    status = Column(String)
+    fecha = Column(DateTime, default=datetime.utcnow)
+    usuario_id = Column(Integer)

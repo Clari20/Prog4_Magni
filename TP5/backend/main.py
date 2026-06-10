@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -6,7 +6,12 @@ from typing import List
 from datetime import datetime, timedelta
 import jwt
 import bcrypt
+import os
+from dotenv import load_dotenv
+import mercadopago
+import requests
 
+load_dotenv(override=True)
 import crud, models, schemas
 from database import engine, get_db
 
@@ -120,3 +125,124 @@ def update_participante(participante_id: str, participante: schemas.Participante
     if not db_participante:
         raise HTTPException(status_code=404, detail="Participante no encontrado")
     return db_participante
+
+from fastapi.responses import RedirectResponse
+
+@app.get("/api/pagos/success")
+def pago_success():
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    return RedirectResponse(url=f"{frontend_url}/cursos?status=success")
+
+@app.get("/api/pagos/failure")
+def pago_failure():
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    return RedirectResponse(url=f"{frontend_url}/cursos?status=failure")
+
+@app.get("/api/pagos/pending")
+def pago_pending():
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    return RedirectResponse(url=f"{frontend_url}/cursos?status=pending")
+
+@app.post("/api/pagos/create-preference", response_model=schemas.PagoResponse)
+def create_preference(pago_req: schemas.PagoRequest, current_user: models.Usuario = Depends(get_current_user)):
+    mp_access_token = os.getenv("MP_ACCESS_TOKEN")
+    if not mp_access_token:
+        raise HTTPException(status_code=500, detail="MercadoPago access token no configurado en el .env")
+
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    backend_url = os.getenv("BACKEND_URL", "http://localhost:8000")
+    print(f"[MP] FRONTEND_URL={frontend_url}")
+    print(f"[MP] BACKEND_URL={backend_url}")
+
+    try:
+        sdk = mercadopago.SDK(mp_access_token)
+        preference_data = {
+            "items": [{
+                "title": pago_req.titulo,
+                "quantity": 1,
+                "unit_price": float(pago_req.precio),
+                "currency_id": "ARS",
+            }],
+            "external_reference": str(current_user.id),
+            "back_urls": {
+                "success": f"{backend_url}/api/pagos/success",
+                "failure": f"{backend_url}/api/pagos/failure",
+                "pending": f"{backend_url}/api/pagos/pending",
+            },
+            "auto_return": "approved",
+            "notification_url": f"{backend_url}/api/pagos/webhook",
+        }
+
+        result = sdk.preference().create(preference_data)
+
+        if result.get("status") not in (200, 201):
+            print(f"[MERCADOPAGO ERROR] => {result}")
+            raise HTTPException(status_code=500, detail=f"Error de MercadoPago: {result}")
+
+        init_point = result.get("response", {}).get("init_point")
+        if not init_point:
+             raise HTTPException(status_code=500, detail="Punto de inicio no devuelto")
+
+        return {"init_point": init_point}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/pagos/webhook")
+async def mercadopago_webhook(request: Request, db: Session = Depends(get_db)):
+    try:
+        body = await request.json()
+    except Exception:
+        return {"status": "ignored"}
+
+    if body.get("type") != "payment":
+        return {"status": "ignored"}
+
+    payment_id = body.get("data", {}).get("id")
+    if not payment_id:
+        return {"status": "ignored"}
+
+    mp_access_token = os.getenv("MP_ACCESS_TOKEN")
+    headers = {"Authorization": f"Bearer {mp_access_token}"}
+    response = requests.get(f"https://api.mercadopago.com/v1/payments/{payment_id}", headers=headers)
+
+    if response.status_code != 200:
+        print(f"[WEBHOOK] Error al consultar pago {payment_id}: {response.status_code}")
+        return {"status": "error"}
+
+    payment_info = response.json()
+    payment_status = payment_info.get("status")
+    item_title = payment_info.get("additional_info", {}).get("items", [{}])[0].get("title", "Curso desconocido")
+    item_price = payment_info.get("transaction_amount", 0)
+    usuario_id_str = payment_info.get("external_reference")
+    usuario_id = int(usuario_id_str) if usuario_id_str and usuario_id_str.isdigit() else None
+
+    existing = db.query(models.Compra).filter(models.Compra.payment_id == str(payment_id)).first()
+    if existing:
+        existing.status = payment_status
+        db.commit()
+        print(f"[WEBHOOK] Pago {payment_id} actualizado a: {payment_status}")
+    else:
+        nueva_compra = models.Compra(
+            payment_id=str(payment_id),
+            curso_titulo=item_title,
+            curso_precio=item_price,
+            status=payment_status,
+            usuario_id=usuario_id
+        )
+        db.add(nueva_compra)
+        db.commit()
+        print(f"[WEBHOOK] Compra registrada: {item_title} - ${item_price} - Estado: {payment_status} - Usuario: {usuario_id}")
+
+    return {"status": "ok"}
+
+@app.get("/api/compras", response_model=List[schemas.CompraResponse])
+def get_compras(db: Session = Depends(get_db)):
+    compras = db.query(models.Compra).order_by(models.Compra.fecha.desc()).all()
+    for c in compras:
+        c.fecha = str(c.fecha)
+    return compras
+
+@app.get("/api/compras/me", response_model=List[schemas.CompraResponse])
+def get_compras_me(db: Session = Depends(get_db), current_user: models.Usuario = Depends(get_current_user)):
+    return crud.get_compras_by_user(db, current_user.id)

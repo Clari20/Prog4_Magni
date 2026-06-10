@@ -65,3 +65,9 @@ def create_user(db: Session, user: schemas.UsuarioCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+def get_compras_by_user(db: Session, usuario_id: int):
+    compras = db.query(models.Compra).filter(models.Compra.usuario_id == usuario_id).order_by(models.Compra.fecha.desc()).all()
+    for c in compras:
+        c.fecha = str(c.fecha)
+    return compras

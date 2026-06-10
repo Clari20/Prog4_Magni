@@ -33,6 +33,13 @@ export default function Navbar() {
               </Link>
             </li>
           )}
+          {isAuthenticated && (
+            <li className="nav-item">
+              <Link to="/cursos" className="nav-links" onClick={() => setIsOpen(false)}>
+                Cursos
+              </Link>
+            </li>
+          )}
           {user?.rol === 'ADMIN' && (
             <li className="nav-item">
               <Link to="/nuevo" className="nav-links" onClick={() => setIsOpen(false)}>

@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import FormularioPage from './pages/FormularioPage';
 import EditarPage from './pages/EditarPage';
+import CursosPage from './pages/CursosPage';
 import Navbar from './components/Navbar';
 import { PrivateRoute } from './components/PrivateRoute';
 import LoginPage from './pages/LoginPage';
@@ -13,6 +14,7 @@ export default function App() {
       <main className="container" style={{ marginTop: '20px' }}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/cursos" element={<CursosPage />} />
           <Route element={<PrivateRoute />}>
             <Route path="/" element={<Home />} />
             <Route path="/nuevo" element={<FormularioPage />} />
