@@ -21,9 +21,19 @@ La base de datos SQLite se crea y administra automáticamente en el archivo `sql
    ```
 3. Levantá el servidor de desarrollo:
    ```bash
-   uvicorn main:app --reload
+   python -m uvicorn main:app --reload
    ```
    > La API estará corriendo en `http://localhost:8000`. Podés acceder a la documentación interactiva (Swagger) entrando a `http://localhost:8000/docs`.
+
+4. (Para MercadoPago) Levantá Ngrok apuntando al puerto del backend. Abrí una nueva terminal en la carpeta del backend (`TP5/backend`) y ejecutá:
+   1. Abrí una terminal y navegá a la carpeta del backend:
+   ```bash
+   cd TP5/backend
+   2. Levanta ngrok
+   ```bash
+   ngrok http 8000
+   ```
+   > Esto generará una URL pública HTTPS que MercadoPago utilizará para enviar notificaciones (Webhooks) y manejar las redirecciones (Auto-Return).
 
 ---
 
@@ -77,6 +87,35 @@ Con el backend corriendo, abrí tu navegador e ingresá a esta URL para disparar
 ## 🛒 4. Integración con MercadoPago (Compras por Usuario)
 
 Se implementó un flujo completo para procesar pagos con MercadoPago, asociando estrictamente cada compra al usuario correspondiente:
+
+### ⚙️ Configuración de Variables de Entorno
+
+Para que la integración con MercadoPago funcione correctamente, debés configurar las credenciales y la URL de Ngrok:
+
+**1. En el Backend (`TP5/backend/.env`):**
+Creá o editá el archivo `.env` en la carpeta del backend e incluí:
+```env
+# Credenciales de tu cuenta de MercadoPago
+MP_ACCESS_TOKEN=APP_USR-tu_access_token_aqui
+MP_PUBLIC_KEY=APP_USR-tu_public_key_aqui
+
+# URL del Frontend (para CORS y redirecciones)
+FRONTEND_URL=http://localhost:5173
+
+# La URL pública generada por Ngrok (fundamental para los webhooks y auto-return)
+BACKEND_URL=https://tu-url.ngrok-free.app
+```
+
+**2. En el Frontend (`TP5/frontend/.env`):**
+Copiá el archivo `.env.example` a `.env` (si aún no lo hiciste) y configurá la misma Public Key:
+```env
+# Clave pública de MercadoPago (la misma que en el backend)
+VITE_MP_PUBLIC_KEY=APP_USR-tu_public_key_aqui
+```
+
+---
+
+### Flujo de la Integración:
 
 - **Protección de rutas:** El endpoint de creación de preferencias (`/api/pagos/create-preference`) exige un token JWT válido.
 - **Trazabilidad de Usuarios:** Se inyecta el ID del usuario en MercadoPago utilizando el campo `external_reference`.
